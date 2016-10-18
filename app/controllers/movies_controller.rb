@@ -1,5 +1,5 @@
 class MoviesController < ApplicationController
-
+  
   def movie_params
     params.require(:movie).permit(:title, :rating, :description, :release_date)
   end
@@ -11,7 +11,18 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    @all_ratings = Movie.all_ratings
+    
+    @current_ratings = params[:ratings] || {}
+    @current_ratings = Hash[@current_ratings.map {|rating| [rating, rating]}]
+    
+    # In the case that no ratings are selected, display all
+    if @current_ratings == {}
+      @current_ratings = Hash[@all_ratings.map{|rating| [rating,rating]}]
+    end
+    
+    @movies = Movie.where(rating: @current_ratings.keys).order(params[:sort])
+   
   end
 
   def new
@@ -34,7 +45,8 @@ class MoviesController < ApplicationController
     flash[:notice] = "#{@movie.title} was successfully updated."
     redirect_to movie_path(@movie)
   end
-
+  
+    
   def destroy
     @movie = Movie.find(params[:id])
     @movie.destroy
