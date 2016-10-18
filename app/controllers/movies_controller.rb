@@ -13,6 +13,15 @@ class MoviesController < ApplicationController
     @all_ratings = Movie.all_ratings
     #session.clear
     sort = params[:sort]||session[:sort]
+    
+    case sort
+    when 'title'
+      @title_header = 'hilight'
+    
+    when 'release_date'
+      @release_date_header = 'hilight'
+    end
+    
     @current_ratings = params[:ratings] || session[:ratings] || {}
     
     # In the case that no ratings are selected, display all
