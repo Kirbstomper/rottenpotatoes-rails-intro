@@ -9,20 +9,32 @@ class MoviesController < ApplicationController
     @movie = Movie.find(id) # look up movie by unique ID
     # will render app/views/movies/show.<extension> by default
   end
-
   def index
     @all_ratings = Movie.all_ratings
-    
-    @current_ratings = params[:ratings] || {}
-    @current_ratings = Hash[@current_ratings.map {|rating| [rating, rating]}]
+    #session.clear
+    sort = params[:sort]||session[:sort]
+    @current_ratings = params[:ratings] || session[:ratings] || {}
     
     # In the case that no ratings are selected, display all
     if @current_ratings == {}
       @current_ratings = Hash[@all_ratings.map{|rating| [rating,rating]}]
     end
     
-    @movies = Movie.where(rating: @current_ratings.keys).order(params[:sort])
-   
+    # if the session and current sorting criteria are diffrent
+    if session[:sort] != params[:sort]
+      session[:sort] = params[:sort]
+      flash.keep
+      redirect_to :sort => sort ,:ratings => @current_ratings and return
+    end
+    
+    if params[:ratings] != session[:ratings] and @current_ratings != {}
+      session[:sort] = sort
+      session[:ratings] = @current_ratings
+      flash.keep
+      redirect_to :sort => sort, :ratings => @current_ratings and return
+    end
+
+    @movies = Movie.where(rating: @current_ratings.keys).order(sort)
   end
 
   def new
